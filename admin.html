@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a0a0a">
+<title>Admin Panel — IDX Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #08080c; --surface: #111118; --surface-2: #1a1a24;
+  --border: rgba(255,255,255,0.08); --text-1: #F9FAFB; --text-2: #9CA3AF; --text-3: #6B7280;
+  --accent: #1A56DB; --accent-soft: rgba(26,86,219,0.12);
+  --green: #10B981; --green-soft: rgba(16,185,129,0.12);
+  --red: #EF4444; --red-soft: rgba(239,68,68,0.12);
+  --gold: #F59E0B; --gold-soft: rgba(245,158,11,0.12);
+}
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-1); min-height: 100vh; padding: 20px 16px 40px; }
+.header { max-width: 640px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: space-between; }
+.header h1 { font-size: 20px; font-weight: 700; }
+.header small { color: var(--text-3); font-size: 12px; }
+.admin-login { max-width: 360px; margin: 80px auto 0; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 28px; }
+.admin-login h2 { font-size: 18px; margin-bottom: 20px; text-align: center; }
+.form-group { margin-bottom: 14px; }
+.form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-2); margin-bottom: 7px; text-transform: uppercase; letter-spacing: 0.3px; }
+.form-input { width: 100%; background: var(--surface-2); border: 1.5px solid var(--border); border-radius: 10px; padding: 12px 14px; color: var(--text-1); font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; transition: border-color 0.2s; }
+.form-input:focus { border-color: var(--accent); }
+.btn { width: 100%; padding: 12px; background: var(--accent); border: none; border-radius: 10px; color: #fff; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 4px; transition: opacity 0.2s; }
+.btn:hover { opacity: 0.9; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-sm { padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.18s; }
+.btn-activate { background: var(--green-soft); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
+.btn-activate:hover { background: var(--green); color: #fff; }
+.btn-deactivate { background: var(--red-soft); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+.btn-deactivate:hover { background: var(--red); color: #fff; }
+.btn-delete { background: rgba(239,68,68,0.05); color: var(--text-3); border: 1px solid rgba(255,255,255,0.06); }
+.btn-delete:hover { background: var(--red-soft); color: var(--red); }
+.stats { max-width: 640px; margin: 0 auto 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; }
+.stat-val { font-size: 24px; font-weight: 700; margin-bottom: 2px; }
+.stat-label { font-size: 12px; color: var(--text-3); }
+.users-list { max-width: 640px; margin: 0 auto; }
+.user-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; }
+.user-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 8px; }
+.user-phone { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600; color: var(--text-1); }
+.badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.badge-active { background: var(--green-soft); color: var(--green); border: 1px solid rgba(16,185,129,0.25); }
+.badge-pending { background: var(--gold-soft); color: var(--gold); border: 1px solid rgba(245,158,11,0.25); }
+.user-meta { font-size: 12px; color: var(--text-3); margin-bottom: 10px; }
+.user-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.refresh-btn { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; color: var(--text-2); font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 7px 14px; cursor: pointer; }
+.refresh-btn:hover { color: var(--text-1); }
+.signout-btn { background: none; border: none; color: var(--text-3); font-size: 12px; cursor: pointer; padding: 4px 8px; border-radius: 6px; font-family: 'DM Sans', sans-serif; }
+.signout-btn:hover { color: var(--red); }
+.empty { text-align: center; color: var(--text-3); padding: 40px 20px; font-size: 14px; }
+.spinner { width: 20px; height: 20px; border: 2.5px solid rgba(255,255,255,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 40px auto; display: block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 20px; font-size: 13px; font-weight: 600; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+.toast.show { opacity: 1; }
+.hidden { display: none !important; }
+.filter-bar { max-width: 640px; margin: 0 auto 14px; display: flex; gap: 8px; align-items: center; }
+.filter-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text-3); font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; padding: 7px 14px; cursor: pointer; transition: all 0.18s; }
+.filter-btn.active { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+</style>
+</head>
+<body>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ADMIN LOGIN -->
+<div id="adminLoginScreen">
+  <div class="admin-login">
+    <h2>🔐 Admin Login</h2>
+    <div class="form-group">
+      <label class="form-label">Email Admin</label>
+      <input type="email" id="adminEmail" class="form-input" placeholder="admin@email.com" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input type="password" id="adminPass" class="form-input" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <div id="adminLoginMsg" style="font-size:13px;color:#FCA5A5;margin:10px 0 0;display:none;"></div>
+    <button class="btn" id="btnAdminLogin" onclick="adminLogin()" style="margin-top:16px;">Masuk</button>
+    <div style="font-size:12px;color:var(--text-3);text-align:center;margin-top:14px;">Panel ini hanya untuk admin IDX Calculator</div>
+  </div>
+</div>
+
+<!-- MAIN PANEL -->
+<div id="mainPanel" class="hidden">
+  <div class="header" style="max-width:640px;margin:0 auto 20px;">
+    <div>
+      <h1>📊 Admin Panel</h1>
+      <small>IDX Calculator — Manajemen Pengguna</small>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button class="refresh-btn" onclick="loadUsers()">🔄 Refresh</button>
+      <button class="signout-btn" onclick="adminSignOut()">Keluar</button>
+    </div>
+  </div>
+
+  <div class="stats" id="statsArea">
+    <div class="stat-card"><div class="stat-val" id="statTotal">—</div><div class="stat-label">Total User</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--green)" id="statActive">—</div><div class="stat-label">Aktif</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--gold)" id="statPending">—</div><div class="stat-label">Menunggu</div></div>
+  </div>
+
+  <div class="filter-bar">
+    <button class="filter-btn active" id="filterAll" onclick="setFilter('all')">Semua</button>
+    <button class="filter-btn" id="filterPending" onclick="setFilter('pending')">Menunggu ⏳</button>
+    <button class="filter-btn" id="filterActive" onclick="setFilter('active')">Aktif ✅</button>
+  </div>
+
+  <div class="users-list" id="usersList">
+    <div class="spinner"></div>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// ⚠️  GANTI DENGAN KONFIGURASI FIREBASE KAMU (SAMA DENGAN index.html)
+// ══════════════════════════════════════════════════════════
+var FIREBASE_CONFIG = {
+  apiKey:            "GANTI_DENGAN_API_KEY_KAMU",
+  authDomain:        "GANTI_DENGAN_AUTH_DOMAIN_KAMU",
+  projectId:         "GANTI_DENGAN_PROJECT_ID_KAMU",
+  storageBucket:     "GANTI_DENGAN_STORAGE_BUCKET_KAMU",
+  messagingSenderId: "GANTI_DENGAN_MESSAGING_SENDER_ID_KAMU",
+  appId:             "GANTI_DENGAN_APP_ID_KAMU"
+};
+// ═══════════════════════════════════════════════════════════
+// UID atau email admin yang diizinkan masuk panel ini:
+var ADMIN_EMAIL = "admin@idxcalculator.app";  // ← ganti dengan email admin kamu
+// ═══════════════════════════════════════════════════════════
+
+firebase.initializeApp(FIREBASE_CONFIG);
+var auth = firebase.auth();
+var db   = firebase.firestore();
+
+var allUsers = [];
+var currentFilter = 'all';
+
+auth.onAuthStateChanged(function(user) {
+  if (user && user.email === ADMIN_EMAIL) {
+    document.getElementById('adminLoginScreen').classList.add('hidden');
+    document.getElementById('mainPanel').classList.remove('hidden');
+    loadUsers();
+  }
+});
+
+function adminLogin() {
+  var email = document.getElementById('adminEmail').value.trim();
+  var pass  = document.getElementById('adminPass').value;
+  if (!email || !pass) return;
+  var btn = document.getElementById('btnAdminLogin');
+  btn.disabled = true; btn.textContent = '...';
+  auth.signInWithEmailAndPassword(email, pass)
+    .then(function(cred) {
+      if (cred.user.email !== ADMIN_EMAIL) {
+        auth.signOut();
+        showAdminErr('Akun ini bukan admin.');
+        btn.disabled = false; btn.textContent = 'Masuk';
+      }
+    })
+    .catch(function() {
+      showAdminErr('Email atau password salah.');
+      btn.disabled = false; btn.textContent = 'Masuk';
+    });
+}
+
+function showAdminErr(msg) {
+  var el = document.getElementById('adminLoginMsg');
+  el.textContent = '❌ ' + msg;
+  el.style.display = 'block';
+}
+
+function adminSignOut() {
+  auth.signOut().then(function() {
+    location.reload();
+  });
+}
+
+function loadUsers() {
+  document.getElementById('usersList').innerHTML = '<div class="spinner"></div>';
+  db.collection('users').orderBy('createdAt', 'desc').get()
+    .then(function(snap) {
+      allUsers = [];
+      snap.forEach(function(doc) {
+        allUsers.push({ id: doc.id, ...doc.data() });
+      });
+      updateStats();
+      renderUsers();
+    })
+    .catch(function() {
+      document.getElementById('usersList').innerHTML = '<div class="empty">Gagal memuat data. Pastikan Firestore Rules sudah diatur.</div>';
+    });
+}
+
+function updateStats() {
+  var active  = allUsers.filter(function(u) { return u.status === 'active'; }).length;
+  var pending = allUsers.filter(function(u) { return u.status === 'pending'; }).length;
+  document.getElementById('statTotal').textContent   = allUsers.length;
+  document.getElementById('statActive').textContent  = active;
+  document.getElementById('statPending').textContent = pending;
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  ['all','pending','active'].forEach(function(k) {
+    document.getElementById('filter' + k.charAt(0).toUpperCase() + k.slice(1))
+      .className = 'filter-btn' + (k === f ? ' active' : '');
+  });
+  renderUsers();
+}
+
+function renderUsers() {
+  var list = allUsers.filter(function(u) {
+    if (currentFilter === 'all') return true;
+    return u.status === currentFilter;
+  });
+  if (list.length === 0) {
+    document.getElementById('usersList').innerHTML = '<div class="empty">Tidak ada pengguna di kategori ini.</div>';
+    return;
+  }
+  var html = list.map(function(u) {
+    var date = u.createdAt ? new Date(u.createdAt.seconds * 1000).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
+    var isActive = u.status === 'active';
+    var badge = isActive
+      ? '<span class="badge badge-active">✅ Aktif</span>'
+      : '<span class="badge badge-pending">⏳ Menunggu</span>';
+    var actionBtn = isActive
+      ? '<button class="btn-sm btn-deactivate" onclick="setStatus(\'' + u.id + '\', \'pending\')">Nonaktifkan</button>'
+      : '<button class="btn-sm btn-activate" onclick="setStatus(\'' + u.id + '\', \'active\')">✅ Aktifkan</button>';
+    var waHref = 'https://wa.me/' + (u.phone || '').replace(/\D/g,'').replace(/^0/, '62') + '?text=' + encodeURIComponent('Halo! Akun IDX Calculator kamu sudah aktif. Silakan login di: https://USERNAME.github.io/idx-calculator/');
+    return '<div class="user-card" id="uc-' + u.id + '">'
+      + '<div class="user-top"><span class="user-phone">📱 ' + (u.phone || '—') + '</span>' + badge + '</div>'
+      + '<div class="user-meta">Daftar: ' + date + '</div>'
+      + '<div class="user-actions">'
+      + actionBtn
+      + '<a href="' + waHref + '" target="_blank" class="btn-sm" style="background:rgba(37,211,102,0.1);color:#25D366;border:1px solid rgba(37,211,102,0.25);text-decoration:none;display:inline-flex;align-items:center;gap:4px;">💬 WA</a>'
+      + '<button class="btn-sm btn-delete" onclick="deleteUser(\'' + u.id + '\')">🗑️</button>'
+      + '</div></div>';
+  }).join('');
+  document.getElementById('usersList').innerHTML = html;
+}
+
+function setStatus(uid, status) {
+  db.collection('users').doc(uid).update({ status: status })
+    .then(function() {
+      var u = allUsers.find(function(x) { return x.id === uid; });
+      if (u) u.status = status;
+      updateStats();
+      renderUsers();
+      showToast(status === 'active' ? '✅ Akun diaktifkan!' : '⏸️ Akun dinonaktifkan');
+    })
+    .catch(function() { showToast('❌ Gagal mengubah status'); });
+}
+
+function deleteUser(uid) {
+  if (!confirm('Hapus user ini dari database? (Akun Auth tidak terhapus otomatis)')) return;
+  db.collection('users').doc(uid).delete()
+    .then(function() {
+      allUsers = allUsers.filter(function(u) { return u.id !== uid; });
+      updateStats();
+      renderUsers();
+      showToast('🗑️ User dihapus dari database');
+    })
+    .catch(function() { showToast('❌ Gagal menghapus'); });
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show';
+  setTimeout(function() { t.className = 'toast'; }, 2500);
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !document.getElementById('adminLoginScreen').classList.contains('hidden')) {
+    adminLogin();
+  }
+});
+</script>
+</body>
+</html>
